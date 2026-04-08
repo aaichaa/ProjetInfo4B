@@ -1,6 +1,10 @@
-import MoteurRechercheFichiers.indexation.IndexInverse;
+package indexation;
+import indexation.IndexInverse;
+
+
 import java.io.*;
 import java.util.*;
+
 
 public class IndexeurDeFichier {
     // les Mots à enlever (stop-words)
@@ -25,7 +29,7 @@ public class IndexeurDeFichier {
     private void indexerFichierTexte(String CheminFichier) throws IOException{
         BufferedReader Lecteur = new BufferedReader(new FileReader(CheminFichier)); // Ouvre le fichier et prepare la lecture ligne par ligne
         String ligne;
-        while (ligne = Lecteur.readLine() != null) {
+        while ((ligne = Lecteur.readLine()) != null) {
             String[] Mots = ExtraireMots(ligne);
             for(String mot : Mots){
                 if(estValide(mot)){
@@ -38,7 +42,7 @@ public class IndexeurDeFichier {
         System.out.println("Fichier tecte indexé : "+ CheminFichier );
     }
 
-    // Classe ExtraireMots 
+    // methode ExtraireMots 
 
     private String[] ExtraireMots(String Ligne){
         Ligne = Ligne.replaceAll("[^a-zA-ZÀ-ÿ0-9]", " "); // remplace tout caractère n'etant pas compris entre A-Z ou 0-9 ou avec des accents
@@ -50,13 +54,13 @@ public class IndexeurDeFichier {
 
     private void IndexerFichierpdf(String CheminFichier) throws IOException{
         // Lancer Pdf via Pipe
-        Process processus = Runtime.getRuntime().exec("pdf2txt" + CheminFichier);  // partie pas trop compris. j'ai utilisé l'IA pour faire. 
+        Process processus = Runtime.getRuntime().exec("pdf2txt" + CheminFichier);
         
         BufferedReader Lecteur = new BufferedReader(
             new InputStreamReader(processus.getInputStream())
         );
         String Ligne; 
-        while (Ligne = Lecteur.readLine() != null) {
+        while ((Ligne = Lecteur.readLine()) != null) {
             String[] Mots = ExtraireMots(Ligne);
             for(String mot : Mots){
                 if(estValide(mot)){
@@ -69,10 +73,31 @@ public class IndexeurDeFichier {
     }
 
 
-    // classe estValide
+    // methode estValide
 
     private boolean estValide(String mot){
         return mot.length() > 2 && !stopwords.contains(mot); // Le mot est valide que si il a plus de 2 caracère et il n'est pas dans les stop-words
+    }
+
+    // Indexer un fichier selon son type
+    public void indexerFichier(String cheminFichier){
+        File fichier = new File(cheminFichier);
+        String nom = fichier.getName().toLowerCase().trim();
+        try{
+            if(nom.endsWith(".txt")){
+                indexerFichierTexte(cheminFichier);
+            }
+            else if(nom.endsWith("pdf")){
+                IndexerFichierpdf(cheminFichier);
+            }
+            else{
+                System.out.println("Format non supporté ");
+            }
+        }catch(IOException e){
+            System.out.println("Erreur lors de l'indexation "+ cheminFichier);
+            e.printStackTrace();
+        }
+        
     }
 
     // ajouter un stop-words personalisé
@@ -83,7 +108,11 @@ public class IndexeurDeFichier {
 
     // Réccupéré la liste des stop-words
 
-    public set<String> getStopWords(){
+    public Set<String> getStopWords(){
         return new HashSet<>(stopwords);
     }
+
+
+
+
 }
